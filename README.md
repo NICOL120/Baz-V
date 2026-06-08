@@ -33,10 +33,38 @@ A starter institutional-style AI crypto trading dashboard built with Next.js and
    ```
 
 ## Menjalankan worker trading
-Worker ini dapat dijalankan di server terpisah atau container untuk proses yang berjalan terus menerus:
+Worker ini adalah proses terpisah yang menjalankan strategi trading secara terus menerus setiap beberapa menit.
+
+Jika Anda hanya ingin menjalankan website/dashboard, tinggal jalankan `npm run dev`.
+Jika Anda juga ingin menjalankan worker, jalankan perintah ini di terminal lain:
 ```bash
 npm run worker
 ```
+
+### Apa yang dilakukan worker?
+- Worker memanggil fungsi trading di `lib/trading.js`.
+- Worker berjalan tanpa berhenti, mengecek pasar setiap `WORKER_INTERVAL_MINUTES`.
+- Worker tidak perlu dijalankan di komputer yang sama dengan website.
+
+### Kenapa worker bisa dijalankan terpisah?
+- Website Next.js hanya untuk tampilan dan API.
+- Worker bisa dijalankan di server lain atau di dalam container Docker.
+- Ini berguna agar proses background tidak mempengaruhi performa website.
+
+### Cara menjalankan worker secara sederhana
+1. Pastikan semua environment variables sudah diisi di `.env.local`.
+2. Buka terminal baru.
+3. Jalankan:
+   ```bash
+   npm run worker
+   ```
+4. Biarkan terminal ini tetap terbuka. Worker akan terus berjalan, menunggu selama interval, lalu menjalankan strategi lagi.
+
+### Menjalankan worker di container atau server lain
+1. Copy seluruh project ke server atau container.
+2. Install dependensi dengan `npm install`.
+3. Pastikan file environment sudah tersedia di sana.
+4. Jalankan `npm run worker`.
 
 ## Deploy ke Vercel
 - Deploy folder ini sebagai proyek Next.js.
