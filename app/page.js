@@ -5,7 +5,7 @@ import AssetComparisonChart from '@/components/AssetComparisonChart';
 import PerformanceChart from '@/components/PerformanceChart';
 
 const defaultSettings = {
-  targetBenchmarks: 'IHSG, S&P 500, Top 100 Crypto, Inflasi fiat',
+  targetBenchmarks: 'IHSG, S&P 500, Gold, USD fiat, Top 100 Crypto',
   allocationPercent: 70,
   stablePercent: 30,
   riskProfile: 'balanced',
@@ -105,7 +105,7 @@ export default function Home() {
         <div style={{ marginBottom: '24px' }}>
           <div className="badge badge-info">INSTITUTIONAL ASSET MANAGEMENT</div>
           <h1 style={{ marginTop: '16px' }}>BAZ HOLDING GROUP</h1>
-          <p>Professional Investment Management & Real-time Performance Monitoring</p>
+          <p>AI Fund Manager yang menjalankan strategi untuk mengalahkan IHSG, S&P 500, Gold, dan USD fiat.</p>
         </div>
       </header>
 
@@ -163,13 +163,15 @@ export default function Home() {
         <>
           <section className="card">
             <h2>📊 Asset Comparison with Benchmarks</h2>
-            <p style={{ color: '#9ca3af', marginBottom: '24px' }}>Real-time comparison of portfolio performance against major market benchmarks</p>
+            <p style={{ color: '#9ca3af', marginBottom: '24px' }}>AI ini bertugas sebagai asset manager untuk mengalahkan IHSG, S&P 500, Gold, dan USD fiat dengan portofolio BAZ Anda.</p>
             <AssetComparisonChart 
               portfolioValue={mockPortfolioValue}
               benchmarks={[
                 { name: 'BAZ Portfolio', value: mockPortfolioValue, color: '#60a5fa' },
                 { name: 'IHSG Index', value: 1100000, color: '#10b981' },
                 { name: 'S&P 500', value: 1200000, color: '#f59e0b' },
+                { name: 'Gold', value: 1120000, color: '#facc15' },
+                { name: 'USD Fiat', value: 1080000, color: '#38bdf8' },
                 { name: 'Crypto Top 100', value: 900000, color: '#a78bfa' },
                 { name: 'Inflation Target', value: 1050000, color: '#ef4444' },
               ]}
