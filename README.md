@@ -91,63 +91,232 @@ npm start
 
 ## 📁 Project Structure
 
-## Menjalankan aplikasi lokal
+```
+/workspaces/Baz-V
+├── app/
+│   ├── page.js                 # Main dashboard page (professional UI)
+│   ├── layout.js               # Root layout with navigation
+│   ├── globals.css             # Professional dark theme styling
+│   ├── api/
+│   │   ├── status/route.js      # System status endpoint
+│   │   ├── settings/route.js    # Settings management
+│   │   └── trade/route.js       # Trading execution
+│
+├── components/
+│   ├── AssetComparisonChart.js  # Asset comparison bar chart
+│   └── PerformanceChart.js      # Performance trend line chart
+│
+├── lib/
+│   ├── binance.js              # Binance API integration
+│   ├── openai.js               # OpenAI integration
+│   ├── openclaw.js             # OpenClaw integration
+│   └── trading.js              # Trading logic
+│
+├── worker/
+│   └── tradingWorker.js        # Background trading worker
+│
+├── data/
+│   ├── settings.json           # Persisted settings
+│   └── trades.json             # Trade history
+│
+└── jsconfig.json               # Path aliases configuration
+```
 
-### Dashboard
-Jalankan aplikasi Next.js:
+## 🎨 UI Features
+
+### Professional Design
+- **Dark Theme**: Institutional dark blue gradient background
+- **Glassmorphism**: Semi-transparent cards dengan backdrop blur
+- **Modern Charts**: Interactive Chart.js visualization
+- **Responsive**: Mobile-friendly responsive layout
+- **Accessibility**: Proper color contrast dan semantic HTML
+
+### Key Metrics Display
+```
+┌─────────────────────────────────────────────────────┐
+│  Portfolio Value  │  Performance vs  │  Risk Profile │
+│   $1.5M AUM      │   Benchmark +25% │  Balanced     │
+└─────────────────────────────────────────────────────┘
+```
+
+### Tab Navigation
+- **Overview**: Dashboard dengan asset comparison dan performance charts
+- **Performance**: AI recommendations dan trading history
+- **Assets**: Asset allocation strategy dan watchlist
+- **Settings**: Configuration untuk semua parameters
+
+## 🚀 Running the Application
+
+### Development Mode
 ```bash
 npm run dev
 ```
 
-Buka browser ke `http://localhost:3000`.
-
-### Worker
-Worker menjalankan strategi trading secara otomatis. Buka terminal baru:
+### Background Trading Worker
 ```bash
 npm run worker
 ```
 
-Worker akan terus berjalan dan mengeksekusi trading setiap `WORKER_INTERVAL_MINUTES`.
+### Production Mode
+```bash
+npm run build
+npm start
+```
 
-## Deployment
+## 🔧 Configuration
 
-### Option 1: Dashboard di Vercel + Worker di VPS
+### Environment Variables (.env.local)
+```bash
+# AI & Trading
+OPENAI_API_KEY=sk-...                    # OpenAI API key
+USE_OPENCLAW=true                        # Use OpenClaw for AI
+OPENCLAW_THINKING=high                   # Thinking depth
 
-**Untuk dashboard di Vercel:**
-1. Deploy project ini ke Vercel sebagai aplikasi Next.js.
-2. Tambahkan environment variables di Vercel dashboard.
+# Binance Exchange
+BINANCE_API_KEY=...
+BINANCE_API_SECRET=...
+ENABLE_LIVE_TRADING=false                # Demo mode vs Live trading
 
-**Untuk worker di VPS:**
-1. SSH ke VPS:
-   ```bash
-   ssh user@your-vps-ip
-   ```
-2. Clone repository:
-   ```bash
-   git clone https://github.com/IDC1201/Baz-V.git
-   cd Baz-V
-   ```
-3. Install dependensi:
-   ```bash
-   npm install
-   ```
-4. Buat file environment:
-   ```bash
-   cp .env.example .env.local
-   ```
-5. Isi `.env.local` dengan data yang sama.
-6. Jalankan worker menggunakan `screen` atau `tmux` agar tetap berjalan:
-   ```bash
-   screen -S trading-worker
-   npm run worker
-   # Tekan Ctrl+A lalu D untuk detach dari screen
-   ```
-7. Untuk merekam session worker, gunakan:
-   ```bash
-   screen -r trading-worker
-   ```
+# Worker Settings
+WORKER_INTERVAL_MINUTES=15               # How often worker runs
+```
 
-### Option 2: Semua lokal
+### Default Trading Settings
+```javascript
+{
+  targetBenchmarks: 'IHSG, S&P 500, Top 100 Crypto, Inflasi fiat',
+  allocationPercent: 70,        // Primary assets allocation
+  stablePercent: 30,            // Stable assets allocation
+  riskProfile: 'balanced',      // conservative, balanced, aggressive
+  watchlist: 'BTCUSDT, ETHUSDT, BNBUSDT',
+  refreshMinutes: 15,
+  engine: 'openclaw'
+}
+```
+
+## 📊 Dashboard Features Explained
+
+### Asset Comparison Chart
+Horizontal bar chart menampilkan:
+- **BAZ Portfolio**: Nilai total portfolio Anda (biru)
+- **IHSG Index**: Indonesian stock market benchmark (hijau)
+- **S&P 500**: US market benchmark (kuning)
+- **Crypto Top 100**: Top cryptocurrencies index (ungu)
+- **Inflation Target**: Inflation rate target (merah)
+
+### Performance Trend Chart
+Line chart dengan:
+- **BAZ Portfolio**: Solid line dengan area fill (biru)
+- **Benchmark Average**: Dashed line comparison (kuning)
+- 30-day historical data
+- Interactive tooltips dan legend
+
+### Performance Metrics
+- **Portfolio Value**: Total AUM (Assets Under Management)
+- **Outperformance**: % difference vs benchmark average
+- **Risk Profile**: Current risk setting
+- **System Status**: Active/Loading
+
+## 🤖 AI Integration
+
+### OpenAI
+```bash
+USE_OPENCLAW=false
+OPENAI_API_KEY=sk-...
+```
+
+### OpenClaw (Recommended)
+```bash
+USE_OPENCLAW=true
+OPENCLAW_THINKING=high
+OPENCLAW_CLI_PATH=npx          # or local path
+```
+
+## 📱 API Endpoints
+
+### GET /api/status
+Mengembalikan current system status, balances, dan recommendations
+
+### POST /api/settings
+Menyimpan atau update trading settings
+
+### POST /api/trade
+Memicu trading execution berdasarkan current recommendations
+
+## 🔐 Security Notes
+
+- **Never commit .env.local** - Add to .gitignore
+- **Use demo mode first** - Set `ENABLE_LIVE_TRADING=false` initially
+- **API keys should be in environment** - Not in code
+- **Monitor worker logs** - Check trading history regularly
+
+## 📈 Deployment
+
+### Vercel (Dashboard)
+```bash
+1. Push to GitHub
+2. Connect to Vercel
+3. Add environment variables
+4. Auto-deploy on push
+```
+
+### VPS (Worker)
+```bash
+ssh user@vps-ip
+git clone https://github.com/IDC1201/Baz-V.git
+cd Baz-V && npm install
+screen -S worker
+npm run worker
+# Ctrl+A then D to detach
+```
+
+## ⚙️ Maintenance
+
+### Monitor Worker
+```bash
+screen -r worker
+```
+
+### View Settings
+```bash
+cat data/settings.json
+```
+
+### View Trade History
+```bash
+cat data/trades.json
+```
+
+### Logs
+- Worker logs: Terminal/screen session
+- API logs: Next.js console output
+- Chart data: Browser console
+
+## 🐛 Troubleshooting
+
+### Charts not displaying?
+- Check if Chart.js is installed: `npm list chart.js`
+- Verify canvas elements in DevTools
+- Check browser console for errors
+
+### API calls failing?
+- Verify environment variables are set
+- Check API keys are valid
+- Monitor network tab in DevTools
+
+### Worker not executing?
+- Verify `npm run worker` is running
+- Check WORKER_INTERVAL_MINUTES setting
+- Review worker logs in screen/tmux session
+
+## 📝 License
+
+Proprietary - BAZ HOLDING GROUP
+
+## 💬 Support
+
+For issues and questions, contact: support@bazholding.com
+
 Jalankan dashboard dan worker di komputer lokal atau server yang sama.
 
 ```bash
