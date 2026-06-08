@@ -9,6 +9,7 @@ const defaultSettings = {
   riskProfile: 'balanced',
   watchlist: 'BTCUSDT, ETHUSDT, BNBUSDT',
   refreshMinutes: 15,
+  engine: 'openclaw',
 };
 
 export default function Home() {
@@ -31,6 +32,7 @@ export default function Home() {
         riskProfile: data.settings.riskProfile,
         watchlist: data.settings.watchlist.join(', '),
         refreshMinutes: data.settings.refreshMinutes,
+        engine: data.settings.engine || 'openclaw',
       });
       setHistory(data.history || []);
     } catch (error) {
@@ -54,6 +56,7 @@ export default function Home() {
       riskProfile: settings.riskProfile,
       watchlist: settings.watchlist,
       refreshMinutes: Number(settings.refreshMinutes),
+      engine: settings.engine,
     };
 
     const res = await fetch('/api/settings', {
@@ -99,7 +102,7 @@ export default function Home() {
         {!loading && status && (
           <div className="grid grid-2">
             <div>
-              <h3>Rekomendasi AI</h3>
+              <h3>Rekomendasi AI ({status.analysis?.source || 'unknown'})</h3>
               <pre className="pre">{JSON.stringify(status.analysis ?? status.suggestions ?? {}, null, 2)}</pre>
             </div>
             <div>
@@ -120,6 +123,16 @@ export default function Home() {
               value={settings.targetBenchmarks}
               onChange={(e) => setSettings({ ...settings, targetBenchmarks: e.target.value })}
             />
+          </label>
+          <label>
+            AI Engine
+            <select
+              value={settings.engine}
+              onChange={(e) => setSettings({ ...settings, engine: e.target.value })}
+            >
+              <option value="openclaw">OpenClaw</option>
+              <option value="openai">OpenAI</option>
+            </select>
           </label>
           <label>
             Watchlist Symbol

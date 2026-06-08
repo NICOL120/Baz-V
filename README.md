@@ -19,6 +19,16 @@ A starter institutional-style AI crypto trading dashboard built with Next.js and
    - `BINANCE_API_KEY`
    - `BINANCE_API_SECRET`
    - `ENABLE_LIVE_TRADING` (opsional, `true` untuk order live)
+   - `USE_OPENCLAW` (opsional, `true` untuk menggunakan OpenClaw sebagai AI engine)
+   - `OPENCLAW_PROFILE` (opsional, nama profil OpenClaw)
+   - `WORKER_INTERVAL_MINUTES` (opsional, default 15)
+   - `OPENCLAW_CLI_PATH` (opsional, default `npx`)
+
+   Copy `.env.example` ke `.env.local` dan isi nilai yang benar:
+   ```bash
+   cp .env.example .env.local
+   ```
+
 3. Jalankan development server:
    ```bash
    npm run dev
