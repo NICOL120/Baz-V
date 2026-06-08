@@ -9,6 +9,41 @@ A starter institutional-style AI crypto trading dashboard built with Next.js and
 - Integrasi OpenAI untuk membuat rekomendasi trading otomatis.
 - Worker script untuk menjalankan strategi di luar Vercel.
 
+## Langkah-langkah lengkap dari awal hingga running
+1. Clone repository ini ke komputer Anda.
+   ```bash
+   git clone <url-repository>
+   cd Baz-V
+   ```
+2. Install dependensi project.
+   ```bash
+   npm install
+   ```
+3. Salin file contoh environment.
+   ```bash
+   cp .env.example .env.local
+   ```
+4. Isi data environment di `.env.local`.
+   - `OPENAI_API_KEY`: API key OpenAI untuk rekomendasi trading.
+   - `BINANCE_API_KEY`: API key Binance untuk data dan order.
+   - `BINANCE_API_SECRET`: Binance secret key.
+   - `ENABLE_LIVE_TRADING`: `true` jika ingin mengeksekusi order nyata; jika tidak, biarkan kosong atau `false`.
+   - `USE_OPENCLAW`: `true` jika ingin menggunakan OpenClaw sebagai AI engine.
+   - `OPENCLAW_PROFILE`, `OPENCLAW_CLI_PATH`, `OPENCLAW_THINKING`: opsi tambahan untuk OpenClaw.
+   - `WORKER_INTERVAL_MINUTES`: interval waktu worker berjalan dalam menit (default 15).
+5. Jalankan aplikasi dashboard.
+   ```bash
+   npm run dev
+   ```
+   Buka browser ke `http://localhost:3000` untuk melihat dashboard dan pengaturan.
+6. Jika ingin membuat worker berjalan bersamaan, buka terminal baru dan jalankan:
+   ```bash
+   npm run worker
+   ```
+7. Setelah semuanya berjalan:
+   - Gunakan dashboard untuk melihat status dan pengaturan.
+   - Worker akan mengeksekusi strategi trading setiap beberapa menit.
+
 ## Instalasi
 1. Instal dependensi:
    ```bash
