@@ -1,53 +1,95 @@
-# Baz-V AI Trading Dashboard
+# BAZ HOLDING GROUP - Institutional Asset Management Platform
 
-A starter institutional-style AI crypto trading dashboard built with Next.js and React.
+A professional institutional-style fund management platform built with Next.js, React, and Chart.js for real-time asset monitoring and performance analytics.
 
-## Ringkasan
-Baz-V adalah aplikasi demo yang terdiri dari:
-- Dashboard web untuk melihat status, pengaturan, dan hasil analisis.
-- API backend sederhana untuk menyimpan pengaturan dan memicu trading.
-- Worker terpisah yang menjalankan strategi trading otomatis.
-- Integrasi Binance untuk data pasar dan order.
-- Integrasi OpenAI / OpenClaw untuk rekomendasi trading.
+## 🎯 Overview
+BAZ HOLDING GROUP platform adalah aplikasi profesional yang dirancang untuk:
+- **Dashboard Premium** - Monitoring aset dan performa real-time dengan UI institusional
+- **Asset Comparison** - Perbandingan performa portfolio vs benchmark major (IHSG, S&P 500, Crypto, Inflasi)
+- **Performance Analytics** - Visualisasi trend performa 30-hari dengan chart interaktif
+- **Risk Management** - Kontrol alokasi aset (Primary/Stable) dan risk profile
+- **Automated Trading** - Integrasi AI (OpenAI/OpenClaw) untuk rekomendasi dan eksekusi trading
+- **Real-time Monitoring** - Status system dan trading history tracking
 
-## Persyaratan
-- Node.js
-- npm
-- API key OpenAI
-- API key dan secret Binance
+## ✨ Fitur Utama
 
-## Setup lokal
-Ikuti langkah berikut untuk menjalankan aplikasi di komputer lokal.
+### 📊 Dashboard Overview
+- Key metrics: Portfolio Value, Performance vs Benchmark, Risk Profile, System Status
+- Asset comparison chart (Bar chart horizontal)
+- Performance trend chart (Line chart dengan dual datasets)
+- Quick access untuk semua fitur utama
 
-### 1. Clone repository
+### 📈 Performance Tab
+- Current AI recommendations
+- Trading history (latest 10 transactions)
+- Real-time status monitoring
+
+### 🏦 Assets Tab
+- Allocation strategy visualization (Primary vs Stable assets)
+- Active watchlist monitoring
+- Allocation percentage tracking
+
+### ⚙️ Settings Tab
+- Configure target benchmarks
+- Select AI engine (OpenClaw/OpenAI)
+- Manage watchlist symbols
+- Adjust allocation percentages
+- Set risk profile (Conservative/Balanced/Aggressive)
+- Configure refresh intervals
+
+## 🏗️ Teknologi Stack
+- **Framework**: Next.js 14.2.5
+- **Frontend**: React 18.3.1
+- **Charts**: Chart.js 4.4.0 + react-chartjs-2 5.2.0
+- **APIs**: Binance, OpenAI, OpenClaw
+- **Styling**: Professional dark theme dengan responsive design
+
+## 📦 Persyaratan
+- Node.js (v18+)
+- npm atau yarn
+- API key OpenAI (untuk AI recommendations)
+- API key & secret Binance (untuk market data)
+- OpenClaw CLI (opsional, untuk advanced AI features)
+
+## 🚀 Quick Start
+
+### 1. Clone & Install
 ```bash
 git clone https://github.com/IDC1201/Baz-V.git
 cd Baz-V
-```
-
-### 2. Install dependensi
-```bash
 npm install
 ```
 
-### 3. Buat file environment
+### 2. Environment Configuration
 ```bash
 cp .env.example .env.local
 ```
 
-### 4. Isi `.env.local`
-Edit file `.env.local` dan isi nilai berikut:
-- `OPENAI_API_KEY` = API key OpenAI
-- `BINANCE_API_KEY` = API key Binance
-- `BINANCE_API_SECRET` = secret Binance
-- `ENABLE_LIVE_TRADING` = `true` untuk order live, `false` untuk analisis saja
-- `USE_OPENCLAW` = `true` untuk menggunakan OpenClaw sebagai AI engine
-- `OPENCLAW_PROFILE` = nama profil OpenClaw (opsional)
-- `OPENCLAW_CLI_PATH` = path/command OpenClaw (opsional, default `npx`)
-- `OPENCLAW_THINKING` = prioritas OpenClaw (opsional, default `high`)
-- `WORKER_INTERVAL_MINUTES` = interval worker dalam menit (opsional, default `15`)
+Edit `.env.local`:
+```
+OPENAI_API_KEY=sk-...
+BINANCE_API_KEY=...
+BINANCE_API_SECRET=...
+ENABLE_LIVE_TRADING=false
+USE_OPENCLAW=true
+OPENCLAW_THINKING=high
+WORKER_INTERVAL_MINUTES=15
+```
 
-> Pastikan `OPENAI_API_KEY`, `BINANCE_API_KEY`, dan `BINANCE_API_SECRET` sudah terisi.
+### 3. Run Development Server
+```bash
+npm run dev
+```
+
+Buka [http://localhost:3000](http://localhost:3000) di browser
+
+### 4. Production Build
+```bash
+npm run build
+npm start
+```
+
+## 📁 Project Structure
 
 ## Menjalankan aplikasi lokal
 
