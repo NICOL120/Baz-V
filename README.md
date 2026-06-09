@@ -1,263 +1,129 @@
-# BAZ HOLDING GROUP - Institutional Asset Management Platform
+# BAZ HOLDING GROUP - AI Fund Manager Platform
 
-A professional institutional-style fund management platform built with Next.js, React, and Chart.js for real-time asset monitoring and performance analytics.
+BAZ HOLDING GROUP adalah dashboard fund-manager berbasis AI yang membantu mengelola portofolio terhadap benchmark utama seperti IHSG, S&P 500, Top 100 Crypto, Gold, USD, dan inflasi.
 
-## 🎯 Overview
-BAZ HOLDING GROUP platform adalah aplikasi profesional yang dirancang untuk:
-- **Dashboard Premium** - Monitoring aset dan performa real-time dengan UI institusional
-- **Asset Comparison** - Perbandingan performa portfolio vs benchmark major (IHSG, S&P 500, Crypto, Inflasi)
-- **Performance Analytics** - Visualisasi trend performa 30-hari dengan chart interaktif
-- **Risk Management** - Kontrol alokasi aset (Primary/Stable) dan risk profile
-- **Automated Trading** - Integrasi AI (OpenAI/OpenClaw) untuk rekomendasi dan eksekusi trading
-- **Real-time Monitoring** - Status system dan trading history tracking
+## 🎯 Ringkasan
+Aplikasi ini dirancang untuk:
+- menampilkan performa portofolio secara visual,
+- membandingkan portfolio dengan benchmark utama,
+- memberi rekomendasi trading berdasarkan profil risiko,
+- dan menjalankan strategi fund manager yang lebih dekat ke kebutuhan aset management.
 
-## ✨ Fitur Utama
+## ✨ Fitur utama
 
-### 📊 Dashboard Overview
-- Key metrics: Portfolio Value, Performance vs Benchmark, Risk Profile, System Status
-- Asset comparison chart (Bar chart horizontal)
-- Performance trend chart (Line chart dengan dual datasets)
-- Quick access untuk semua fitur utama
+### Dashboard overview
+- metrik utama: portfolio value, performance vs benchmark, risk profile, dan status sistem,
+- chart perbandingan aset dengan benchmark,
+- chart performa tren.
 
-### 📈 Performance Tab
-- Current AI recommendations
-- Trading history (latest 10 transactions)
-- Real-time status monitoring
+### Performance tab
+- menampilkan rekomendasi AI terbaru,
+- menampilkan history trading,
+- menampilkan log eksekusi sistem.
 
-### 🏦 Assets Tab
-- Allocation strategy visualization (Primary vs Stable assets)
-- Active watchlist monitoring
-- Allocation percentage tracking
+### Assets tab
+- visualisasi alokasi primary vs stable,
+- daftar watchlist aktif,
+- informasi posisi portofolio.
 
-### ⚙️ Settings Tab
-- Configure target benchmarks
-- Select AI engine (OpenClaw/OpenAI)
-- Manage watchlist symbols
-- Adjust allocation percentages
-- Set risk profile (Conservative/Balanced/Aggressive)
-- Configure refresh intervals
+### Settings tab
+- mengatur target benchmark,
+- memilih engine AI (OpenClaw atau OpenAI),
+- mengubah watchlist,
+- mengatur persentase alokasi dan profil risiko.
 
-## 🏗️ Teknologi Stack
-- **Framework**: Next.js 14.2.5
-- **Frontend**: React 18.3.1
-- **Charts**: Chart.js 4.4.0 + react-chartjs-2 5.2.0
-- **APIs**: Binance, OpenAI, OpenClaw
-- **Styling**: Professional dark theme dengan responsive design
+## 🧠 Logika fund manager saat ini
+Sistem memakai strategi benchmark-driven yang menyesuaikan rekomendasi dengan target:
+- IHSG,
+- S&P 500,
+- Top 100 Crypto,
+- Gold,
+- USD,
+- dan inflasi.
+
+Jika API eksternal tidak tersedia, aplikasi tetap bisa menghasilkan rekomendasi melalui fallback engine internal. Jika kredensial Binance belum diset, eksekusi trading akan berjalan dalam mode simulasi/dry-run.
+
+## 🛠️ Teknologi yang dipakai
+- Next.js 14
+- React 18
+- Chart.js + react-chartjs-2
+- Node.js
+- OpenAI / OpenClaw (opsional)
+- Binance API (opsional)
 
 ## 📦 Persyaratan
-- Node.js (v18+)
-- npm atau yarn
-- API key OpenAI (untuk AI recommendations)
-- API key & secret Binance (untuk market data)
-- OpenClaw CLI (opsional, untuk advanced AI features)
+- Node.js 18+
+- npm
+- API key OpenAI (opsional)
+- API key Binance (opsional)
+- OpenClaw (opsional)
 
-## 🚀 Quick Start
+## 🚀 Cara running
 
-### 1. Clone & Install
+### 1. Install dependensi
 ```bash
-git clone https://github.com/IDC1201/Baz-V.git
-cd Baz-V
 npm install
 ```
 
-### 2. Environment Configuration
+### 2. Siapkan environment
+Buat file .env.local dan isi variabel yang diperlukan, misalnya:
 ```bash
-cp .env.example .env.local
+OPENAI_API_KEY=your_openai_key
+BINANCE_API_KEY=your_binance_key
+BINANCE_API_SECRET=your_binance_secret
+USE_OPENCLAW=false
 ```
 
-Edit `.env.local`:
-```
-OPENAI_API_KEY=sk-...
-BINANCE_API_KEY=...
-BINANCE_API_SECRET=...
-ENABLE_LIVE_TRADING=false
-USE_OPENCLAW=true
-OPENCLAW_THINKING=high
-WORKER_INTERVAL_MINUTES=15
-```
-
-### 3. Run Development Server
+### 3. Jalankan aplikasi
 ```bash
 npm run dev
 ```
 
-Buka [http://localhost:3000](http://localhost:3000) di browser
+Buka http://localhost:3000
 
-### 4. Production Build
+### 4. Build untuk produksi
 ```bash
 npm run build
 npm start
 ```
 
-## 📁 Project Structure
-
+## 🧪 Testing dan validasi
+```bash
+node --test test/trading.test.js
+npm run build
 ```
+
+## 📁 Struktur proyek
+```bash
 /workspaces/Baz-V
 ├── app/
-│   ├── page.js                 # Main dashboard page (professional UI)
-│   ├── layout.js               # Root layout with navigation
-│   ├── globals.css             # Professional dark theme styling
+│   ├── page.js
 │   ├── api/
-│   │   ├── status/route.js      # System status endpoint
-│   │   ├── settings/route.js    # Settings management
-│   │   └── trade/route.js       # Trading execution
-│
+│   │   ├── status/route.js
+│   │   ├── settings/route.js
+│   │   └── trade/route.js
 ├── components/
-│   ├── AssetComparisonChart.js  # Asset comparison bar chart
-│   └── PerformanceChart.js      # Performance trend line chart
-│
+│   ├── AssetComparisonChart.js
+│   └── PerformanceChart.js
 ├── lib/
-│   ├── binance.js              # Binance API integration
-│   ├── openai.js               # OpenAI integration
-│   ├── openclaw.js             # OpenClaw integration
-│   └── trading.js              # Trading logic
-│
+│   ├── binance.js
+│   ├── openai.js
+│   ├── openclaw.js
+│   └── trading.js
 ├── worker/
-│   └── tradingWorker.js        # Background trading worker
-│
-├── data/
-│   ├── settings.json           # Persisted settings
-│   └── trades.json             # Trade history
-│
-└── jsconfig.json               # Path aliases configuration
+│   └── tradingWorker.js
+├── test/
+│   └── trading.test.js
+└── data/
+    ├── settings.json
+    └── trades.json
 ```
 
-## 🎨 UI Features
+## 🔐 Catatan penting
+- Jangan commit file .env.local.
+- Gunakan mode simulasi terlebih dahulu jika belum siap trading live.
+- Jika tidak ada kredensial eksternal, sistem tetap bisa berjalan dengan strategi internal.
 
-### Professional Design
-- **Dark Theme**: Institutional dark blue gradient background
-- **Glassmorphism**: Semi-transparent cards dengan backdrop blur
-- **Modern Charts**: Interactive Chart.js visualization
-- **Responsive**: Mobile-friendly responsive layout
-- **Accessibility**: Proper color contrast dan semantic HTML
-
-### Key Metrics Display
-```
-┌─────────────────────────────────────────────────────┐
-│  Portfolio Value  │  Performance vs  │  Risk Profile │
-│   $1.5M AUM      │   Benchmark +25% │  Balanced     │
-└─────────────────────────────────────────────────────┘
-```
-
-### Tab Navigation
-- **Overview**: Dashboard dengan asset comparison dan performance charts
-- **Performance**: AI recommendations dan trading history
-- **Assets**: Asset allocation strategy dan watchlist
-- **Settings**: Configuration untuk semua parameters
-
-## 🚀 Running the Application
-
-### Development Mode
-```bash
-npm run dev
-```
-
-### Background Trading Worker
-```bash
-npm run worker
-```
-
-### Production Mode
-```bash
-npm run build
-npm start
-```
-
-## 🔧 Configuration
-
-### Environment Variables (.env.local)
-```bash
-# AI & Trading
-OPENAI_API_KEY=sk-...                    # OpenAI API key
-USE_OPENCLAW=true                        # Use OpenClaw for AI
-OPENCLAW_THINKING=high                   # Thinking depth
-
-# Binance Exchange
-BINANCE_API_KEY=...
-BINANCE_API_SECRET=...
-ENABLE_LIVE_TRADING=false                # Demo mode vs Live trading
-
-# Worker Settings
-WORKER_INTERVAL_MINUTES=15               # How often worker runs
-```
-
-### Default Trading Settings
-```javascript
-{
-  targetBenchmarks: 'IHSG, S&P 500, Top 100 Crypto, Inflasi fiat',
-  allocationPercent: 70,        // Primary assets allocation
-  stablePercent: 30,            // Stable assets allocation
-  riskProfile: 'balanced',      // conservative, balanced, aggressive
-  watchlist: 'BTCUSDT, ETHUSDT, BNBUSDT',
-  refreshMinutes: 15,
-  engine: 'openclaw'
-}
-```
-
-## 📊 Dashboard Features Explained
-
-### Asset Comparison Chart
-Horizontal bar chart menampilkan:
-- **BAZ Portfolio**: Nilai total portfolio Anda (biru)
-- **IHSG Index**: Indonesian stock market benchmark (hijau)
-- **S&P 500**: US market benchmark (kuning)
-- **Crypto Top 100**: Top cryptocurrencies index (ungu)
-- **Inflation Target**: Inflation rate target (merah)
-
-### Performance Trend Chart
-Line chart dengan:
-- **BAZ Portfolio**: Solid line dengan area fill (biru)
-- **Benchmark Average**: Dashed line comparison (kuning)
-- 30-day historical data
-- Interactive tooltips dan legend
-
-### Performance Metrics
-- **Portfolio Value**: Total AUM (Assets Under Management)
-- **Outperformance**: % difference vs benchmark average
-- **Risk Profile**: Current risk setting
-- **System Status**: Active/Loading
-
-## 🤖 AI Integration
-
-### OpenAI
-```bash
-USE_OPENCLAW=false
-OPENAI_API_KEY=sk-...
-```
-
-### OpenClaw (Recommended)
-```bash
-USE_OPENCLAW=true
-OPENCLAW_THINKING=high
-OPENCLAW_CLI_PATH=npx          # or local path
-```
-
-## 📱 API Endpoints
-
-### GET /api/status
-Mengembalikan current system status, balances, dan recommendations
-
-### POST /api/settings
-Menyimpan atau update trading settings
-
-### POST /api/trade
-Memicu trading execution berdasarkan current recommendations
-
-## 🔐 Security Notes
-
-- **Never commit .env.local** - Add to .gitignore
-- **Use demo mode first** - Set `ENABLE_LIVE_TRADING=false` initially
-- **API keys should be in environment** - Not in code
-- **Monitor worker logs** - Check trading history regularly
-
-## 📈 Deployment
-
-### Vercel (Dashboard)
-```bash
-1. Push to GitHub
-2. Connect to Vercel
-3. Add environment variables
-4. Auto-deploy on push
 ```
 
 ### VPS (Worker)

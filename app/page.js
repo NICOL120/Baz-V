@@ -5,7 +5,7 @@ import AssetComparisonChart from '@/components/AssetComparisonChart';
 import PerformanceChart from '@/components/PerformanceChart';
 
 const defaultSettings = {
-  targetBenchmarks: 'IHSG, S&P 500, Gold, USD fiat, Top 100 Crypto',
+  targetBenchmarks: 'IHSG, S&P 500, Top 100 Crypto, Gold, USD, Inflation',
   allocationPercent: 70,
   stablePercent: 30,
   riskProfile: 'balanced',
