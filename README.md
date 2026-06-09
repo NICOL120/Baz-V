@@ -60,31 +60,41 @@ npm run worker
    → Analisis 24h momentum dan volume
 
 3. 🎯 COMPARE BENCHMARKS
-   → IHSG Index: -1.2%
-   → S&P 500: +22.5%
-   → Gold: +5.2%
-   → Bitcoin: +125.3%
-   → Top 100 Crypto: +95.5%
-   → USD/IDR: 0%
+   → Ambil data benchmark live dari Yahoo Finance dan CoinGecko
+   → IHSG, S&P 500, Gold, Bitcoin, Top 100 Crypto, USD/IDR
 
-4. 🧠 AI ANALYSIS
-   → OpenClaw/OpenAI generate recommendations
-   → Evaluate: BUY, HOLD, atau SELL setiap asset
-   → Assign conviction level & percentage allocation
+4. ⚖️  REBALANCING (NEW!)
+   → Hitung current allocation: berapa % setiap aset
+   → Hitung target allocation: berapa % ideal untuk beat benchmarks
+   → Tentukan aset mana yang overweight/underweight
+   → AI validasi rebalancing plan
+   → Execute SELL untuk overweight, BUY untuk underweight
 
-5. 💰 EXECUTE TRADES
+5. 🧠 AI ANALYSIS
+   → OpenClaw/OpenAI generate trading recommendations
+   → Cari opportunistic opportunities
+   → Evaluate: BUY, HOLD, atau SELL
+
+6. 💰 EXECUTE OPPORTUNISTIC TRADES
    → Place order untuk BUY recommendation
-   → Alokasi: 70% growth, 30% USDT stable
+   → Place order untuk SELL recommendation
    → Dengan risk management & slippage protection
 
-6. 📝 RECORD DATA
-   → Save semua trade details
+7. 📝 RECORD DATA
+   → Save rebalancing trades + opportunistic trades
    → Calculate performance vs benchmarks
    → Update dashboard
 
-7. 🔄 REPEAT
+8. 🔄 REPEAT
    → Tunggu 15 menit, lalu cycle berikutnya
 ```
+
+---
+
+## 📚 Documentation
+
+- 📖 **[REBALANCING_STRATEGY.md](REBALANCING_STRATEGY.md)** - Detailed rebalancing logic & examples
+- 🎯 **[README.md](README.md)** - This file (overview & setup)
 
 ---
 
@@ -96,7 +106,7 @@ npm run worker
 - 📊 **Holdings** - Jumlah aset yang dipegang
 - 🟢 **System Status** - Live indicator
 - 📋 **Holdings Table** - Daftar lengkap dengan harga & %
-- 🎯 **Benchmark Cards** - Performance vs 6 benchmarks
+- 🎯 **Benchmark Cards** - Live benchmark performance (Yahoo Finance + CoinGecko)
 
 ### Performance Tab
 - 📊 Benchmark Indices - IHSG, S&P 500, Gold, BTC, dll
@@ -205,31 +215,79 @@ npm start
 npm run worker
 ```
 
-### Production Deployment (VPS/Server)
+### Production Deployment
 
+Untuk deployment production, jalankan website di Vercel dan worker continuous di VPS.
+
+#### 1. Website di Vercel
+- Vercel cocok untuk Next.js frontend + API route `/api/status` dan `/api/trade`.
+- Worker long-running tidak bisa dijalankan di Vercel, jadi deploy worker terpisah di VPS.
+
+Langkah sederhana:
+
+1. Push repository ke GitHub.
+2. Buka https://vercel.com dan buat project baru dari repo `Baz-V`.
+3. Atur Environment Variables di Vercel:
+   - `BINANCE_API_KEY`
+   - `BINANCE_API_SECRET`
+   - `OPENAI_API_KEY` (jika menggunakan OpenAI)
+   - `USE_OPENCLAW=true`
+   - `ENGINE=openclaw` atau `openai`
+   - `WORKER_INTERVAL_MINUTES=15`
+   - `ALLOCATION_PERCENT=70`
+   - `STABLE_PERCENT=30`
+   - `RISK_PROFILE=balanced`
+4. Deploy project. Vercel akan otomatis build dengan `npm run build`.
+
+> Hasilnya: dashboard dan API route berjalan di Vercel.
+
+#### 2. Worker di VPS (24/7)
+Worker harus dijalankan di server/vps karena memerlukan proses yang terus hidup.
+
+1. SSH ke VPS:
 ```bash
-# Via SSH
 ssh user@your-vps
-
-# Clone & setup
+```
+2. Clone repository:
+```bash
 git clone https://github.com/IDC1201/Baz-V.git
 cd Baz-V
+```
+3. Setup environment dan install dependency:
+```bash
+cat > .env.local << 'EOF'
+BINANCE_API_KEY=your_binance_api_key_here
+BINANCE_API_SECRET=your_binance_api_secret_here
+OPENAI_API_KEY=your_openai_key_here
+USE_OPENCLAW=true
+ENGINE=openclaw
+WORKER_INTERVAL_MINUTES=15
+ALLOCATION_PERCENT=70
+STABLE_PERCENT=30
+RISK_PROFILE=balanced
+EOF
 npm install
 npm run build
-
-# Use process manager (recommended)
+```
+4. Install `pm2` dan jalankan worker:
+```bash
 npm install -g pm2
-
-# Start with PM2
-pm2 start "npm start" --name "baz-dashboard"
 pm2 start "npm run worker" --name "baz-worker"
 pm2 save
 pm2 startup
-
-# Monitor
-pm2 logs
-pm2 status
 ```
+5. Cek worker:
+```bash
+pm2 status
+pm2 logs baz-worker
+```
+
+> Catatan: `npm start` hanya dibutuhkan jika website juga dijalankan di VPS. Untuk konfigurasi ideal, website di Vercel, worker di VPS.
+
+#### 3. Memastikan workflow benar
+- Website di Vercel menampilkan dashboard dan status API.
+- Worker di VPS menjalankan `runAutonomousFundManager()` setiap interval.
+- Worker menggunakan `.env.local` yang sama dengan variabel API binance dan AI.
 
 ---
 
