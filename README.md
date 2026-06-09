@@ -63,25 +63,18 @@ npm run worker
    → Ambil data benchmark live dari Yahoo Finance dan CoinGecko
    → IHSG, S&P 500, Gold, Bitcoin, Top 100 Crypto, USD/IDR
 
-4. ⚖️  REBALANCING (NEW!)
-   → Hitung current allocation: berapa % setiap aset
-   → Hitung target allocation: berapa % ideal untuk beat benchmarks
-   → Tentukan aset mana yang overweight/underweight
-   → AI validasi rebalancing plan
-   → Execute SELL untuk overweight, BUY untuk underweight
-
 5. 🧠 AI ANALYSIS
    → OpenClaw/OpenAI generate trading recommendations
-   → Cari opportunistic opportunities
+   → Cari the best assets to trade
    → Evaluate: BUY, HOLD, atau SELL
 
-6. 💰 EXECUTE OPPORTUNISTIC TRADES
+6. 💰 EXECUTE TRADES
    → Place order untuk BUY recommendation
    → Place order untuk SELL recommendation
    → Dengan risk management & slippage protection
 
 7. 📝 RECORD DATA
-   → Save rebalancing trades + opportunistic trades
+   → Save semua trade details
    → Calculate performance vs benchmarks
    → Update dashboard
 
@@ -93,7 +86,6 @@ npm run worker
 
 ## 📚 Documentation
 
-- 📖 **[REBALANCING_STRATEGY.md](REBALANCING_STRATEGY.md)** - Detailed rebalancing logic & examples
 - 🎯 **[README.md](README.md)** - This file (overview & setup)
 
 ---
