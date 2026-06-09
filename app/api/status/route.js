@@ -1,18 +1,43 @@
 import { NextResponse } from 'next/server';
-import { getSettings, getAccountBalances, fetchMarketData, readJSON, analyzeAndSuggest } from '../../../lib/trading';
+import {
+  getPortfolioState,
+  calculatePortfolioValue,
+  fetchMarketData,
+  fetch24HourStats,
+  fetchBenchmarkData,
+  comparePerformance,
+} from '../../../lib/fundManagerV2';
 
 export async function GET() {
   try {
-    const settings = await getSettings();
-    const watchlist = settings.watchlist;
-    const symbols = watchlist.map((symbol) => symbol.trim()).filter(Boolean);
-    const balances = await getAccountBalances();
-    const market = await fetchMarketData(symbols);
-    const history = await readJSON('trades.json', []);
-    const analysis = await analyzeAndSuggest(symbols);
+    // Get portfolio state
+    const { balances } = await getPortfolioState();
+    
+    // Fetch market data for key assets
+    const watchlist = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT'];
+    const marketStats = await fetch24HourStats(watchlist);
+    const prices = await fetchMarketData(watchlist);
+    
+    // Calculate portfolio value
+    const portfolio = await calculatePortfolioValue(balances, prices);
+    
+    // Get benchmark comparison
+    const benchmarks = await fetchBenchmarkData();
+    const performance = await comparePerformance(portfolio.totalUsd);
 
-    return NextResponse.json({ settings, balances, market, analysis, history });
+    return NextResponse.json({
+      success: true,
+      portfolio,
+      marketStats,
+      benchmarks,
+      performance,
+      timestamp: new Date().toISOString(),
+    });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
   }
 }
+

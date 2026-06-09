@@ -4,20 +4,11 @@ import { useEffect, useState } from 'react';
 import AssetComparisonChart from '@/components/AssetComparisonChart';
 import PerformanceChart from '@/components/PerformanceChart';
 
-const defaultSettings = {
-  targetBenchmarks: 'IHSG, S&P 500, Top 100 Crypto, Gold, USD, Inflation',
-  allocationPercent: 70,
-  stablePercent: 30,
-  riskProfile: 'balanced',
-  watchlist: 'BTCUSDT, ETHUSDT, BNBUSDT',
-  refreshMinutes: 15,
-  engine: 'openclaw',
-};
-
 export default function Home() {
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState(null);
-  const [settings, setSettings] = useState(defaultSettings);
+  const [portfolio, setPortfolio] = useState(null);
+  const [benchmarks, setBenchmarks] = useState(null);
+  const [performance, setPerformance] = useState(null);
   const [history, setHistory] = useState([]);
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
@@ -25,21 +16,27 @@ export default function Home() {
   const fetchStatus = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/status');
-      const data = await res.json();
-      setStatus(data);
-      setSettings({
-        targetBenchmarks: data.settings.targetBenchmarks.join(', '),
-        allocationPercent: data.settings.allocationPercent,
-        stablePercent: data.settings.stablePercent,
-        riskProfile: data.settings.riskProfile,
-        watchlist: data.settings.watchlist.join(', '),
-        refreshMinutes: data.settings.refreshMinutes,
-        engine: data.settings.engine || 'openclaw',
-      });
-      setHistory(data.history || []);
+      const [statusRes, historyRes] = await Promise.all([
+        fetch('/api/status'),
+        fetch('/api/fund-manager?section=history'),
+      ]);
+
+      const statusData = await statusRes.json();
+      const historyData = await historyRes.json();
+
+      if (statusData.success) {
+        setPortfolio(statusData.portfolio);
+        setBenchmarks(statusData.benchmarks);
+        setPerformance(statusData.performance);
+      }
+
+      if (historyData.success) {
+        setHistory(historyData.latest || []);
+      }
+
+      setMessage('');
     } catch (error) {
-      setMessage('Gagal mengambil status: ' + error.message);
+      setMessage('❌ Error loading data: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -47,105 +44,112 @@ export default function Home() {
 
   useEffect(() => {
     fetchStatus();
+    const interval = setInterval(fetchStatus, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
   }, []);
 
-  const saveSettings = async (event) => {
-    event.preventDefault();
-    setMessage('Menyimpan pengaturan...');
-    const body = {
-      targetBenchmarks: settings.targetBenchmarks,
-      allocationPercent: Number(settings.allocationPercent),
-      stablePercent: Number(settings.stablePercent),
-      riskProfile: settings.riskProfile,
-      watchlist: settings.watchlist,
-      refreshMinutes: Number(settings.refreshMinutes),
-      engine: settings.engine,
-    };
-
-    const res = await fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setMessage('✓ Pengaturan tersimpan.');
-      setTimeout(() => setMessage(''), 3000);
-      fetchStatus();
-    } else {
-      setMessage('⚠ Error: ' + data.error);
-    }
-  };
-
-  const runTrade = async () => {
-    setMessage('Memicu trading execution...');
+  const runFundManagerCycle = async () => {
+    setMessage('🤖 Starting fund manager cycle...');
     setLoading(true);
-    const res = await fetch('/api/trade', { method: 'POST' });
-    const data = await res.json();
-    if (res.ok) {
-      setMessage('✓ Trading execution selesai.');
-      setHistory([data.result, ...history].slice(0, 10));
-      setTimeout(() => setMessage(''), 3000);
-      fetchStatus();
-    } else {
-      setMessage('⚠ Error: ' + data.error);
-    }
-    setLoading(false);
-  };
+    try {
+      const res = await fetch('/api/trade', { method: 'POST' });
+      const data = await res.json();
 
-  // Sample data for demonstration
-  const mockPortfolioValue = status?.balances?.total || 1500000;
-  const mockBenchmarkValue = 1200000;
-  const performancePercent = ((mockPortfolioValue - mockBenchmarkValue) / mockBenchmarkValue * 100).toFixed(2);
+      if (data.success) {
+        setMessage('✅ Fund manager cycle completed successfully!');
+        setTimeout(() => fetchStatus(), 1000);
+      } else {
+        setMessage('⚠️ Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      setMessage('❌ Error: ' + error.message);
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage(''), 5000);
+    }
+  };
 
   return (
     <main>
-      {/* Header Section */}
+      {/* Header */}
       <header>
         <div style={{ marginBottom: '24px' }}>
-          <div className="badge badge-info">INSTITUTIONAL ASSET MANAGEMENT</div>
+          <div className="badge badge-info">🤖 AUTONOMOUS FUND MANAGER</div>
           <h1 style={{ marginTop: '16px' }}>BAZ HOLDING GROUP</h1>
-          <p>AI Fund Manager yang menjalankan strategi untuk mengalahkan IHSG, S&P 500, Gold, dan USD fiat.</p>
+          <p>AI-powered asset management targeting: IHSG | S&P 500 | Gold | Bitcoin | Top 100 Crypto | USD</p>
         </div>
       </header>
 
       {/* Key Metrics */}
       <section className="grid grid-4">
         <div className="metric-card card-highlight">
-          <div className="metric-label">Portfolio Value</div>
-          <div className="metric-value">${(mockPortfolioValue / 1000000).toFixed(2)}M</div>
+          <div className="metric-label">💰 Portfolio Value</div>
+          <div className="metric-value">
+            ${portfolio ? (portfolio.totalUsd / 1000000).toFixed(2) : '0.00'}M
+          </div>
           <div className="metric-subtext">Assets Under Management</div>
         </div>
         <div className="metric-card card-highlight">
-          <div className="metric-label">Performance vs Benchmark</div>
-          <div className={`metric-value ${performancePercent > 0 ? 'positive' : 'negative'}`}>
-            {performancePercent > 0 ? '+' : ''}{performancePercent}%
+          <div className="metric-label">📈 Outperformance</div>
+          <div className={`metric-value ${performance && performance.comparison.vsSP500 > 0 ? 'positive' : 'negative'}`}>
+            {performance ? (performance.comparison.vsSP500 > 0 ? '+' : '') + performance.comparison.vsSP500 : '0'}%
           </div>
-          <div className="metric-subtext">Outperformance</div>
+          <div className="metric-subtext">vs S&P 500</div>
         </div>
         <div className="metric-card">
-          <div className="metric-label">Risk Profile</div>
-          <div className="metric-value" style={{ fontSize: '20px', textTransform: 'capitalize' }}>
-            {settings.riskProfile}
+          <div className="metric-label">🎯 Holdings</div>
+          <div className="metric-value">
+            {portfolio ? Object.keys(portfolio.holdings).length : 0}
           </div>
-          <div className="metric-subtext">Asset Allocation</div>
+          <div className="metric-subtext">Active Positions</div>
         </div>
         <div className="metric-card">
-          <div className="metric-label">System Status</div>
+          <div className="metric-label">🚀 Status</div>
           <div className="metric-value" style={{ fontSize: '18px', color: '#10b981' }}>
-            {loading ? 'Loading' : 'Active'}
+            {loading ? '⏳ Sync' : '✅ Live'}
           </div>
-          <div className="metric-subtext">Engine: {settings.engine.toUpperCase()}</div>
+          <div className="metric-subtext">System Active</div>
         </div>
       </section>
 
+      {/* Control Button */}
+      <section style={{ marginBottom: '24px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <button
+          onClick={runFundManagerCycle}
+          disabled={loading}
+          className="primary"
+          style={{ padding: '12px 24px', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
+        >
+          {loading ? '⏳ Running...' : '🤖 Execute Fund Manager Cycle'}
+        </button>
+        <button
+          onClick={fetchStatus}
+          disabled={loading}
+          className="secondary"
+          style={{ padding: '12px 24px', fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer' }}
+        >
+          🔄 Refresh
+        </button>
+      </section>
+
+      {/* Message */}
+      {message && (
+        <section className="card" style={{
+          borderColor: message.includes('✅') ? '#10b981' : message.includes('⚠️') ? '#f59e0b' : '#ef4444',
+          background: message.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : message.includes('⚠️') ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          marginBottom: '24px'
+        }}>
+          <p>{message}</p>
+        </section>
+      )}
+
       {/* Tabs */}
       <section style={{ marginBottom: '32px', display: 'flex', gap: '16px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '16px' }}>
-        {['overview', 'performance', 'assets', 'settings'].map((tab) => (
+        {['overview', 'performance', 'history'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`secondary`}
+            className="secondary"
             style={{
               borderBottom: activeTab === tab ? '2px solid #60a5fa' : 'none',
               background: activeTab === tab ? 'rgba(96, 165, 250, 0.15)' : 'transparent',
@@ -162,224 +166,176 @@ export default function Home() {
       {activeTab === 'overview' && (
         <>
           <section className="card">
-            <h2>📊 Asset Comparison with Benchmarks</h2>
-            <p style={{ color: '#9ca3af', marginBottom: '24px' }}>AI ini bertugas sebagai asset manager untuk mengalahkan IHSG, S&P 500, Gold, dan USD fiat dengan portofolio BAZ Anda.</p>
-            <AssetComparisonChart 
-              portfolioValue={mockPortfolioValue}
-              benchmarks={[
-                { name: 'BAZ Portfolio', value: mockPortfolioValue, color: '#60a5fa' },
-                { name: 'IHSG Index', value: 1100000, color: '#10b981' },
-                { name: 'S&P 500', value: 1200000, color: '#f59e0b' },
-                { name: 'Gold', value: 1120000, color: '#facc15' },
-                { name: 'USD Fiat', value: 1080000, color: '#38bdf8' },
-                { name: 'Crypto Top 100', value: 900000, color: '#a78bfa' },
-                { name: 'Inflation Target', value: 1050000, color: '#ef4444' },
-              ]}
-            />
+            <h2>📊 Benchmark Comparison</h2>
+            <p style={{ color: '#9ca3af', marginBottom: '24px' }}>
+              Portfolio performance vs target benchmarks
+            </p>
+            {performance ? (
+              <div className="grid grid-3">
+                <div className="card">
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>vs IHSG</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: performance.comparison.vsIHSG > 0 ? '#10b981' : '#ef4444', marginTop: '8px' }}>
+                    {performance.comparison.vsIHSG > 0 ? '+' : ''}{performance.comparison.vsIHSG}%
+                  </div>
+                </div>
+                <div className="card">
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>vs S&P 500</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: performance.comparison.vsSP500 > 0 ? '#10b981' : '#ef4444', marginTop: '8px' }}>
+                    {performance.comparison.vsSP500 > 0 ? '+' : ''}{performance.comparison.vsSP500}%
+                  </div>
+                </div>
+                <div className="card">
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>vs Gold</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: performance.comparison.vsGold > 0 ? '#10b981' : '#ef4444', marginTop: '8px' }}>
+                    {performance.comparison.vsGold > 0 ? '+' : ''}{performance.comparison.vsGold}%
+                  </div>
+                </div>
+                <div className="card">
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>vs Bitcoin</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: performance.comparison.vsBTC > 0 ? '#10b981' : '#ef4444', marginTop: '8px' }}>
+                    {performance.comparison.vsBTC > 0 ? '+' : ''}{performance.comparison.vsBTC}%
+                  </div>
+                </div>
+                <div className="card">
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>vs Top 100 Crypto</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: performance.comparison.vsTop100Crypto > 0 ? '#10b981' : '#ef4444', marginTop: '8px' }}>
+                    {performance.comparison.vsTop100Crypto > 0 ? '+' : ''}{performance.comparison.vsTop100Crypto}%
+                  </div>
+                </div>
+                <div className="card">
+                  <div style={{ fontSize: '14px', color: '#9ca3af' }}>vs USD</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: performance.comparison.vsUSD > 0 ? '#10b981' : '#ef4444', marginTop: '8px' }}>
+                    {performance.comparison.vsUSD > 0 ? '+' : ''}{performance.comparison.vsUSD}%
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p>Loading performance data...</p>
+            )}
           </section>
 
           <section className="card">
-            <h2>📈 Performance Trend</h2>
-            <p style={{ color: '#9ca3af', marginBottom: '24px' }}>30-day performance history and trend analysis</p>
-            <PerformanceChart 
-              data={[
-                { date: 'Day 1', baz: 1400000, benchmark: 1180000 },
-                { date: 'Day 5', baz: 1420000, benchmark: 1190000 },
-                { date: 'Day 10', baz: 1440000, benchmark: 1195000 },
-                { date: 'Day 15', baz: 1460000, benchmark: 1205000 },
-                { date: 'Day 20', baz: 1480000, benchmark: 1210000 },
-                { date: 'Day 25', baz: 1500000, benchmark: 1200000 },
-              ]}
-            />
+            <h2>💼 Current Holdings</h2>
+            {portfolio && Object.keys(portfolio.holdings).length > 0 ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <th style={{ textAlign: 'left', padding: '12px', color: '#9ca3af' }}>Asset</th>
+                      <th style={{ textAlign: 'right', padding: '12px', color: '#9ca3af' }}>Quantity</th>
+                      <th style={{ textAlign: 'right', padding: '12px', color: '#9ca3af' }}>Price</th>
+                      <th style={{ textAlign: 'right', padding: '12px', color: '#9ca3af' }}>Value</th>
+                      <th style={{ textAlign: 'right', padding: '12px', color: '#9ca3af' }}>%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(portfolio.holdings).map(([symbol, holding]) => (
+                      <tr key={symbol} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '12px', fontWeight: '600' }}>{symbol}</td>
+                        <td style={{ textAlign: 'right', padding: '12px' }}>{holding.quantity.toFixed(4)}</td>
+                        <td style={{ textAlign: 'right', padding: '12px' }}>${holding.price.toFixed(2)}</td>
+                        <td style={{ textAlign: 'right', padding: '12px' }}>${holding.value.toFixed(2)}</td>
+                        <td style={{ textAlign: 'right', padding: '12px', color: '#60a5fa' }}>{holding.percentOfPortfolio}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>No holdings yet. Fund the account with USDT to begin.</p>
+            )}
           </section>
-
-          {message && (
-            <section className="card" style={{ borderColor: message.includes('✓') ? '#10b981' : '#ef4444', background: message.includes('✓') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }}>
-              <p>{message}</p>
-            </section>
-          )}
         </>
       )}
 
       {/* Performance Tab */}
       {activeTab === 'performance' && (
         <section className="card">
-          <h2>Performance Analytics</h2>
-          {loading && <p>Loading performance data...</p>}
-          {!loading && status && (
-            <div className="grid">
+          <h2>📈 Performance History</h2>
+          {benchmarks ? (
+            <div className="grid grid-2">
               <div>
-                <h3>Current Recommendations</h3>
-                <pre className="pre">{JSON.stringify(status.analysis ?? status.suggestions ?? {}, null, 2)}</pre>
+                <h3>Benchmark Indices</h3>
+                <div style={{ marginTop: '16px' }}>
+                  {Object.entries(benchmarks).map(([key, bench]) => (
+                    <div key={key} className="card" style={{ marginBottom: '12px', padding: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ fontSize: '12px', color: '#9ca3af' }}>{bench.name}</div>
+                          <div style={{ fontSize: '16px', fontWeight: '600', marginTop: '4px' }}>
+                            ${bench.currentPrice.toFixed(2)}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '14px', color: bench.change1y > 0 ? '#10b981' : '#ef4444', fontWeight: '600' }}>
+                            {bench.change1y > 0 ? '+' : ''}{bench.change1y}%
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#6b7280' }}>1Y Return</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div>
-                <h3>Trading History (Latest 10)</h3>
-                {history.length > 0 ? (
-                  <div style={{ overflowY: 'auto', maxHeight: '400px' }}>
-                    {history.map((trade, i) => (
-                      <div key={i} className="card" style={{ marginBottom: '12px', padding: '16px', fontSize: '13px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <strong>{trade.symbol || 'SYSTEM'}</strong>
-                          <span className={trade.action === 'BUY' ? 'positive' : 'negative'}>{trade.action || 'LOG'}</span>
-                        </div>
-                        <p style={{ margin: '4px 0', color: '#9ca3af' }}>{trade.details || trade.message || 'Event recorded'}</p>
-                        <p style={{ margin: '4px 0', color: '#6b7280', fontSize: '12px' }}>{new Date(trade.timestamp).toLocaleString()}</p>
-                      </div>
-                    ))}
+                <h3>Fund Performance</h3>
+                <div style={{ marginTop: '16px' }}>
+                  <div className="card" style={{ padding: '16px' }}>
+                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>Total Value</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px' }}>
+                      ${portfolio ? portfolio.totalUsd : 0}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>
+                      {portfolio ? Object.keys(portfolio.holdings).length : 0} assets held
+                    </div>
                   </div>
-                ) : (
-                  <p>No trading history yet</p>
-                )}
+                </div>
               </div>
             </div>
+          ) : (
+            <p>Loading performance data...</p>
           )}
         </section>
       )}
 
-      {/* Assets Tab */}
-      {activeTab === 'assets' && (
+      {/* History Tab */}
+      {activeTab === 'history' && (
         <section className="card">
-          <h2>Asset Allocation</h2>
-          <div className="grid grid-2">
-            <div>
-              <h3>Allocation Strategy</h3>
-              <div style={{ marginTop: '20px' }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span>Primary Assets</span>
-                    <strong>{settings.allocationPercent}%</strong>
+          <h2>⏰ Recent Cycles</h2>
+          {history.length > 0 ? (
+            <div style={{ overflowY: 'auto', maxHeight: '600px' }}>
+              {history.map((cycle, idx) => (
+                <div key={idx} className="card" style={{ marginBottom: '16px', padding: '16px', background: 'rgba(255,255,255,0.02)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ fontWeight: '600' }}>Cycle {history.length - idx}</div>
+                    <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                      {new Date(cycle.timestamp).toLocaleString()}
+                    </div>
                   </div>
-                  <div style={{ background: 'rgba(96, 165, 250, 0.2)', borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
-                    <div style={{ background: '#60a5fa', height: '100%', width: `${settings.allocationPercent}%` }}></div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', fontSize: '13px' }}>
+                    <div>
+                      <div style={{ color: '#9ca3af' }}>Portfolio</div>
+                      <div style={{ fontWeight: '600', marginTop: '4px' }}>${cycle.portfolio.totalUsd}</div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af' }}>Trades</div>
+                      <div style={{ fontWeight: '600', marginTop: '4px', color: '#60a5fa' }}>
+                        {cycle.trades.filter(t => t.success).length}/{cycle.trades.length}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#9ca3af' }}>Duration</div>
+                      <div style={{ fontWeight: '600', marginTop: '4px' }}>
+                        {(cycle.duration / 1000).toFixed(1)}s
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span>Stable Assets</span>
-                    <strong>{settings.stablePercent}%</strong>
-                  </div>
-                  <div style={{ background: 'rgba(16, 185, 129, 0.2)', borderRadius: '8px', height: '8px', overflow: 'hidden' }}>
-                    <div style={{ background: '#10b981', height: '100%', width: `${settings.stablePercent}%` }}></div>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-            <div>
-              <h3>Watchlist</h3>
-              <div style={{ marginTop: '20px' }}>
-                {settings.watchlist.split(',').map((symbol, i) => (
-                  <div key={i} className="badge badge-info" style={{ marginRight: '8px', marginBottom: '8px' }}>
-                    {symbol.trim()}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Settings Tab */}
-      {activeTab === 'settings' && (
-        <section className="card">
-          <h2>Configuration Management</h2>
-          <form onSubmit={saveSettings} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', marginTop: '24px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Target Benchmarks
-              </label>
-              <textarea
-                value={settings.targetBenchmarks}
-                onChange={(e) => setSettings({ ...settings, targetBenchmarks: e.target.value })}
-                style={{ marginTop: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                AI Engine
-              </label>
-              <select
-                value={settings.engine}
-                onChange={(e) => setSettings({ ...settings, engine: e.target.value })}
-                style={{ marginTop: '8px' }}
-              >
-                <option value="openclaw">OpenClaw</option>
-                <option value="openai">OpenAI</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Watchlist Symbols
-              </label>
-              <input
-                value={settings.watchlist}
-                onChange={(e) => setSettings({ ...settings, watchlist: e.target.value })}
-                style={{ marginTop: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Primary Allocation (%)
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={settings.allocationPercent}
-                onChange={(e) => setSettings({ ...settings, allocationPercent: e.target.value })}
-                style={{ marginTop: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Stable Allocation (%)
-              </label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={settings.stablePercent}
-                onChange={(e) => setSettings({ ...settings, stablePercent: e.target.value })}
-                style={{ marginTop: '8px' }}
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Risk Profile
-              </label>
-              <select
-                value={settings.riskProfile}
-                onChange={(e) => setSettings({ ...settings, riskProfile: e.target.value })}
-                style={{ marginTop: '8px' }}
-              >
-                <option value="conservative">Conservative</option>
-                <option value="balanced">Balanced</option>
-                <option value="aggressive">Aggressive</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                Refresh Interval (minutes)
-              </label>
-              <input
-                type="number"
-                min="5"
-                max="60"
-                value={settings.refreshMinutes}
-                onChange={(e) => setSettings({ ...settings, refreshMinutes: e.target.value })}
-                style={{ marginTop: '8px' }}
-              />
-            </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button type="submit" disabled={loading}>
-                  {loading ? 'Saving...' : '💾 Save Settings'}
-                </button>
-                <button type="button" onClick={runTrade} disabled={loading} className="secondary">
-                  {loading ? 'Executing...' : '🚀 Execute Trading'}
-                </button>
-              </div>
-            </div>
-          </form>
+          ) : (
+            <p>No cycles yet. Run the fund manager to generate data.</p>
+          )}
         </section>
       )}
     </main>
